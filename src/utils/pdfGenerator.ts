@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 
 interface QuestionnaireData {
@@ -36,87 +35,155 @@ const containsHebrew = (text: string): boolean => {
   return /[\u0590-\u05FF]/.test(text);
 };
 
-// Function to reverse Hebrew text for proper display
-const reverseHebrewText = (text: string): string => {
+// Function to properly handle Hebrew text for PDF
+const processHebrewText = (text: string): string => {
   if (!containsHebrew(text)) return text;
   
-  // Split by spaces and reverse the order of Hebrew words
+  // Split text into words and handle mixed content
   const words = text.split(' ');
-  const reversedWords = words.reverse();
-  return reversedWords.join(' ');
+  const processedWords: string[] = [];
+  
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    if (containsHebrew(word)) {
+      // Reverse Hebrew characters within the word
+      processedWords.push(word.split('').reverse().join(''));
+    } else {
+      processedWords.push(word);
+    }
+  }
+  
+  // For RTL languages, reverse the word order
+  return processedWords.reverse().join(' ');
 };
 
-// Function to handle text direction for Hebrew
-const processText = (pdf: jsPDF, text: string, x: number, y: number, maxWidth?: number) => {
-  // For Hebrew text, we need special handling
-  if (containsHebrew(text)) {
-    const processedText = reverseHebrewText(text);
+// Function to handle text rendering with proper Hebrew support
+const renderText = (pdf: jsPDF, text: string, x: number, y: number, maxWidth?: number, align: 'left' | 'right' | 'center' = 'left') => {
+  const isHebrew = containsHebrew(text);
+  
+  if (isHebrew) {
+    // Process Hebrew text
+    const processedText = processHebrewText(text);
     
     if (maxWidth) {
-      // For Hebrew, we need to handle line breaks differently
+      // Manual line breaking for Hebrew text
       const words = processedText.split(' ');
       let currentLine = '';
-      let lineCount = 0;
+      let lines: string[] = [];
       
       for (const word of words) {
         const testLine = currentLine ? `${currentLine} ${word}` : word;
         const lineWidth = pdf.getTextWidth(testLine);
         
         if (lineWidth > maxWidth && currentLine) {
-          pdf.text(currentLine, x, y + (lineCount * 5), { align: 'right' });
+          lines.push(currentLine);
           currentLine = word;
-          lineCount++;
         } else {
           currentLine = testLine;
         }
       }
       
       if (currentLine) {
-        pdf.text(currentLine, x, y + (lineCount * 5), { align: 'right' });
-        lineCount++;
+        lines.push(currentLine);
       }
       
-      return lineCount * 5;
+      // Render lines
+      lines.forEach((line, index) => {
+        pdf.text(line, x, y + (index * 6), { align: 'right' });
+      });
+      
+      return lines.length * 6;
     } else {
       pdf.text(processedText, x, y, { align: 'right' });
-      return 5;
+      return 6;
     }
   } else {
-    // For English text, use normal LTR direction
+    // Handle English text normally
     if (maxWidth) {
       const splitText = pdf.splitTextToSize(text, maxWidth);
-      pdf.text(splitText, x, y);
-      return Array.isArray(splitText) ? splitText.length * 5 : 5;
+      pdf.text(splitText, x, y, { align });
+      return Array.isArray(splitText) ? splitText.length * 6 : 6;
     } else {
-      pdf.text(text, x, y);
-      return 5;
+      pdf.text(text, x, y, { align });
+      return 6;
     }
   }
 };
 
+// Function to add Hebrew font support (if you have a Hebrew font file)
+const addHebrewFontSupport = (pdf: jsPDF) => {
+  // If you have a Hebrew font file, you can add it like this:
+  // pdf.addFont('path/to/hebrew-font.ttf', 'HebrewFont', 'normal');
+  // pdf.setFont('HebrewFont');
+  
+  // For now, we'll use a Unicode-compatible approach
+  // Note: This is a workaround - for best results, you should add a proper Hebrew font
+  try {
+    // Try to set font that might have better Unicode support
+    pdf.setFont('helvetica', 'normal');
+  } catch (error) {
+    console.warn('Could not set Hebrew font, using default');
+  }
+};
+
 export const generateQuestionnairePDF = (data: QuestionnaireData) => {
-  const pdf = new jsPDF();
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
   
-  // Set font to support Hebrew characters better
-  pdf.setFont('helvetica');
+  // Add Hebrew font support
+  addHebrewFontSupport(pdf);
   
-  // Title
+  // Set initial font size and color
   pdf.setFontSize(20);
   pdf.setTextColor(37, 99, 235); // Blue color
-  pdf.text('Medical Questionnaire Report', 20, 30);
+  
+  // Title - check if it contains Hebrew
+  const title = 'Medical Questionnaire Report';
+  if (containsHebrew(title)) {
+    renderText(pdf, title, 190, 30, undefined, 'right');
+  } else {
+    pdf.text(title, 20, 30);
+  }
   
   // Patient Information
   pdf.setFontSize(16);
   pdf.setTextColor(0, 0, 0);
-  pdf.text('Patient Information', 20, 50);
+  const patientInfoTitle = 'Patient Information';
+  if (containsHebrew(patientInfoTitle)) {
+    renderText(pdf, patientInfoTitle, 190, 50, undefined, 'right');
+  } else {
+    pdf.text(patientInfoTitle, 20, 50);
+  }
   
   pdf.setFontSize(12);
-  pdf.text(`Name: ${data.fullName}`, 20, 65);
-  pdf.text(`Date: ${data.date ? data.date.toLocaleDateString() : 'Not specified'}`, 20, 75);
+  
+  // Name field
+  const nameLabel = `Name: ${data.fullName}`;
+  if (containsHebrew(nameLabel)) {
+    renderText(pdf, nameLabel, 190, 65, undefined, 'right');
+  } else {
+    pdf.text(nameLabel, 20, 65);
+  }
+  
+  // Date field
+  const dateLabel = `Date: ${data.date ? data.date.toLocaleDateString() : 'Not specified'}`;
+  if (containsHebrew(dateLabel)) {
+    renderText(pdf, dateLabel, 190, 75, undefined, 'right');
+  } else {
+    pdf.text(dateLabel, 20, 75);
+  }
   
   // Questionnaire Summary
   pdf.setFontSize(16);
-  pdf.text('Questionnaire Summary', 20, 95);
+  const summaryTitle = 'Questionnaire Summary';
+  if (containsHebrew(summaryTitle)) {
+    renderText(pdf, summaryTitle, 190, 95, undefined, 'right');
+  } else {
+    pdf.text(summaryTitle, 20, 95);
+  }
   
   pdf.setFontSize(12);
   pdf.text('Total Questions: 20', 20, 110);
@@ -125,15 +192,21 @@ export const generateQuestionnairePDF = (data: QuestionnaireData) => {
   
   // Questions and Answers
   pdf.setFontSize(16);
-  pdf.text('Questions and Answers', 20, 150);
+  const questionsTitle = 'Questions and Answers';
+  if (containsHebrew(questionsTitle)) {
+    renderText(pdf, questionsTitle, 190, 150, undefined, 'right');
+  } else {
+    pdf.text(questionsTitle, 20, 150);
+  }
   
   let yPosition = 165;
   pdf.setFontSize(10);
   
   medicalQuestions.forEach((question, index) => {
     // Check if we need a new page
-    if (yPosition > 260) {
+    if (yPosition > 250) {
       pdf.addPage();
+      addHebrewFontSupport(pdf);
       yPosition = 20;
     }
     
@@ -141,25 +214,32 @@ export const generateQuestionnairePDF = (data: QuestionnaireData) => {
     const questionText = `${index + 1}. ${question}`;
     const answerText = `Answer: ${answer}`;
     
-    // Process question text with Hebrew support
-    const questionHeight = processText(pdf, questionText, 20, yPosition, 170);
+    // Render question
+    const questionHeight = renderText(pdf, questionText, containsHebrew(questionText) ? 190 : 20, yPosition, 170);
     yPosition += questionHeight;
     
+    // Render answer
     pdf.setTextColor(37, 99, 235);
-    processText(pdf, answerText, 20, yPosition);
+    const answerHeight = renderText(pdf, answerText, containsHebrew(answerText) ? 190 : 20, yPosition);
     pdf.setTextColor(0, 0, 0);
-    yPosition += 10;
+    yPosition += answerHeight + 5;
   });
   
-  // Add signature if available (on a new page if needed)
+  // Add signature if available
   if (data.signature) {
     if (yPosition > 200) {
       pdf.addPage();
+      addHebrewFontSupport(pdf);
       yPosition = 20;
     }
     
     pdf.setFontSize(16);
-    pdf.text('Digital Signature', 20, yPosition);
+    const signatureTitle = 'Digital Signature';
+    if (containsHebrew(signatureTitle)) {
+      renderText(pdf, signatureTitle, 190, yPosition, undefined, 'right');
+    } else {
+      pdf.text(signatureTitle, 20, yPosition);
+    }
     
     try {
       // Add signature image
@@ -167,7 +247,12 @@ export const generateQuestionnairePDF = (data: QuestionnaireData) => {
     } catch (error) {
       console.warn('Could not add signature to PDF:', error);
       pdf.setFontSize(12);
-      pdf.text('Signature captured (unable to display in PDF)', 20, yPosition + 20);
+      const signatureNote = 'Signature captured (unable to display in PDF)';
+      if (containsHebrew(signatureNote)) {
+        renderText(pdf, signatureNote, 190, yPosition + 20, undefined, 'right');
+      } else {
+        pdf.text(signatureNote, 20, yPosition + 20);
+      }
     }
   }
   
@@ -176,7 +261,12 @@ export const generateQuestionnairePDF = (data: QuestionnaireData) => {
   pdf.setPage(pageCount);
   pdf.setFontSize(10);
   pdf.setTextColor(128, 128, 128);
-  pdf.text('Generated by Medical Questionnaire System', 20, 280);
+  const footerText = 'Generated by Medical Questionnaire System';
+  if (containsHebrew(footerText)) {
+    renderText(pdf, footerText, 190, 280, undefined, 'right');
+  } else {
+    pdf.text(footerText, 20, 280);
+  }
   
   return pdf;
 };
