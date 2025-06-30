@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, User, FileText, CheckCircle } from "lucide-react";
+import { CalendarIcon, User, FileText, CheckCircle, Download, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import MedicalQuestionnaire from "../components/MedicalQuestionnaire";
 import { toast } from "@/hooks/use-toast";
+import { generateQuestionnairePDF } from "../utils/pdfGenerator";
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState('personal'); // 'personal', 'questionnaire', 'completed'
@@ -20,6 +20,7 @@ const Index = () => {
   });
   const [questionnaireData, setQuestionnaireData] = useState({});
   const [signature, setSignature] = useState('');
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const handlePersonalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +56,60 @@ const Index = () => {
     });
   };
 
+  const generatePDF = () => {
+    try {
+      const pdf = generateQuestionnairePDF({
+        fullName: personalData.fullName,
+        date: personalData.date,
+        signature: signature,
+        answers: questionnaireData as Record<number, boolean>
+      });
+      
+      pdf.save(`medical-questionnaire-${personalData.fullName.replace(/\s+/g, '-')}.pdf`);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Your questionnaire has been saved as a PDF file",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendEmail = () => {
+    const subject = encodeURIComponent("Medical Questionnaire Results");
+    const body = encodeURIComponent(`
+Medical Questionnaire Results
+
+Patient Information:
+- Name: ${personalData.fullName}
+- Date: ${personalData.date ? format(personalData.date, "PPP") : ""}
+
+Questionnaire Summary:
+- Total Questions: 20
+- Status: Completed
+- Completion Date: ${new Date().toLocaleDateString()}
+
+This questionnaire has been completed and digitally signed.
+    `);
+
+    // Create mailto link
+    const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+    
+    // Try to open email client
+    window.location.href = mailtoLink;
+
+    toast({
+      title: "Email Client Opened",
+      description: "Your default email client should open with the questionnaire data",
+    });
+  };
+
   const renderPersonalForm = () => (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg border-blue-200">
@@ -84,7 +139,7 @@ const Index = () => {
             
             <div className="space-y-2">
               <Label className="text-gray-700 font-medium">Date *</Label>
-              <Popover>
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -101,7 +156,10 @@ const Index = () => {
                   <Calendar
                     mode="single"
                     selected={personalData.date}
-                    onSelect={(date) => setPersonalData({...personalData, date})}
+                    onSelect={(date) => {
+                      setPersonalData({...personalData, date});
+                      setDatePickerOpen(false);
+                    }}
                     className="pointer-events-auto"
                     initialFocus
                   />
@@ -145,6 +203,24 @@ const Index = () => {
               <p className="text-sm text-gray-600 mt-2">
                 Your responses have been recorded for medical review
               </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                onClick={generatePDF}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export PDF
+              </Button>
+              
+              <Button 
+                onClick={sendEmail}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Send Email
+              </Button>
             </div>
             
             <Button 

@@ -22,6 +22,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,47 +39,86 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
 
     // Set drawing styles
     ctx.strokeStyle = '#2563eb';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     // Fill with white background
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Prevent scrolling when touching the canvas
+    const preventTouch = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
+    canvas.addEventListener('touchstart', preventTouch, { passive: false });
+    canvas.addEventListener('touchend', preventTouch, { passive: false });
+    canvas.addEventListener('touchmove', preventTouch, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('touchstart', preventTouch);
+      canvas.removeEventListener('touchend', preventTouch);
+      canvas.removeEventListener('touchmove', preventTouch);
+    };
   }, []);
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getPointerPosition = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    let clientX, clientY;
+
+    if ('touches' in e) {
+      if (e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+      }
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const pos = getPointerPosition(e);
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(pos.x, pos.y);
+    setLastPoint(pos);
     setIsDrawing(true);
     setIsEmpty(false);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const pos = getPointerPosition(e);
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.lineTo(x, y);
+    ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setLastPoint(pos);
   };
 
   const stopDrawing = () => {
@@ -144,14 +184,18 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
               <canvas
                 ref={canvasRef}
-                className="w-full h-48 cursor-crosshair border border-gray-200 rounded"
+                className="w-full h-48 cursor-crosshair border border-gray-200 rounded touch-none"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                style={{ touchAction: 'none' }}
               />
               <p className="text-center text-sm text-gray-500 mt-2">
-                {isEmpty ? 'Click and drag to create your signature' : 'Signature captured'}
+                {isEmpty ? 'Click/tap and drag to create your signature' : 'Signature captured'}
               </p>
             </div>
             
