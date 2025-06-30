@@ -31,6 +31,43 @@ const medicalQuestions = [
   "Do you exercise regularly or maintain an active lifestyle?"
 ];
 
+// Function to detect if text contains Hebrew characters
+const containsHebrew = (text: string): boolean => {
+  return /[\u0590-\u05FF]/.test(text);
+};
+
+// Function to handle text direction for Hebrew
+const processText = (pdf: jsPDF, text: string, x: number, y: number, maxWidth?: number) => {
+  if (containsHebrew(text)) {
+    // For Hebrew text, we need to handle RTL direction
+    if (maxWidth) {
+      const splitText = pdf.splitTextToSize(text, maxWidth);
+      if (Array.isArray(splitText)) {
+        splitText.forEach((line, index) => {
+          pdf.text(line, x, y + (index * 5), { align: 'right' });
+        });
+        return splitText.length * 5;
+      } else {
+        pdf.text(splitText, x, y, { align: 'right' });
+        return 5;
+      }
+    } else {
+      pdf.text(text, x, y, { align: 'right' });
+      return 5;
+    }
+  } else {
+    // For English text, use normal LTR direction
+    if (maxWidth) {
+      const splitText = pdf.splitTextToSize(text, maxWidth);
+      pdf.text(splitText, x, y);
+      return Array.isArray(splitText) ? splitText.length * 5 : 5;
+    } else {
+      pdf.text(text, x, y);
+      return 5;
+    }
+  }
+};
+
 export const generateQuestionnairePDF = (data: QuestionnaireData) => {
   const pdf = new jsPDF();
   
@@ -78,14 +115,12 @@ export const generateQuestionnairePDF = (data: QuestionnaireData) => {
     const questionText = `${index + 1}. ${question}`;
     const answerText = `Answer: ${answer}`;
     
-    // Split long questions into multiple lines if needed
-    const splitQuestion = pdf.splitTextToSize(questionText, 170);
-    
-    pdf.text(splitQuestion, 20, yPosition);
-    yPosition += splitQuestion.length * 5;
+    // Process question text with Hebrew support
+    const questionHeight = processText(pdf, questionText, 20, yPosition, 170);
+    yPosition += questionHeight;
     
     pdf.setTextColor(37, 99, 235);
-    pdf.text(answerText, 20, yPosition);
+    processText(pdf, answerText, 20, yPosition);
     pdf.setTextColor(0, 0, 0);
     yPosition += 10;
   });

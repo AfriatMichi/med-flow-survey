@@ -127,10 +127,12 @@ const MedicalQuestionnaire: React.FC<MedicalQuestionnaireProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-medium text-gray-800 mb-8 leading-relaxed">
-                {medicalQuestions[currentQuestion]}
-              </h2>
+            <div className="flex flex-col items-center min-h-[200px]">
+              <div className="flex-1 flex items-center justify-center mb-8">
+                <h2 className="text-2xl font-medium text-gray-800 text-center leading-relaxed max-w-3xl">
+                  {medicalQuestions[currentQuestion]}
+                </h2>
+              </div>
               
               <div className="flex justify-center space-x-6">
                 <Button
@@ -181,11 +183,7 @@ const MedicalQuestionnaire: React.FC<MedicalQuestionnaireProps> = ({
                 Previous
               </Button>
               
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Question {currentQuestion + 1} of {medicalQuestions.length}
-                </p>
-              </div>
+              <div className="flex-1"></div>
               
               {isLastQuestion ? (
                 <Button
