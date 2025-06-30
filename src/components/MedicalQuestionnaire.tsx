@@ -183,7 +183,7 @@ const MedicalQuestionnaire: React.FC<MedicalQuestionnaireProps> = ({
               
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  {Object.keys(answers).length} of {medicalQuestions.length} questions answered
+                  Question {currentQuestion + 1} of {medicalQuestions.length}
                 </p>
               </div>
               

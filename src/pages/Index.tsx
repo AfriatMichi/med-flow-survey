@@ -22,6 +22,30 @@ const Index = () => {
   const [signature, setSignature] = useState('');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
+  const medicalQuestions = [
+    "Do you have any allergies to medications?",
+    "Are you currently taking any prescription medications?",
+    "Do you have a history of heart disease?",
+    "Have you ever had high blood pressure?",
+    "Do you have diabetes or a family history of diabetes?",
+    "Do you have diabetes or a family history of diabetes?",
+    "Have you ever been diagnosed with cancer?",
+    "Do you smoke or have you smoked in the past?",
+    "Do you consume alcohol regularly?",
+    "Have you had any surgeries in the past 5 years?",
+    "Do you have any chronic pain conditions?",
+    "Are you currently experiencing any symptoms?",
+    "Do you have a history of mental health conditions?",
+    "Have you ever had kidney or liver problems?",
+    "Do you have any breathing difficulties or asthma?",
+    "Are you pregnant or planning to become pregnant?",
+    "Do you have any vision or hearing problems?",
+    "Have you ever had blood clots or circulation issues?",
+    "Do you have any skin conditions or rashes?",
+    "Are you up to date with your vaccinations?",
+    "Do you exercise regularly or maintain an active lifestyle?"
+  ];
+
   const handlePersonalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -82,6 +106,13 @@ const Index = () => {
   };
 
   const sendEmail = () => {
+    // Create detailed questionnaire results
+    let questionsAndAnswers = '';
+    medicalQuestions.forEach((question, index) => {
+      const answer = questionnaireData[index] ? 'Yes' : 'No';
+      questionsAndAnswers += `${index + 1}. ${question}\nAnswer: ${answer}\n\n`;
+    });
+
     const subject = encodeURIComponent("Medical Questionnaire Results");
     const body = encodeURIComponent(`
 Medical Questionnaire Results
@@ -94,6 +125,9 @@ Questionnaire Summary:
 - Total Questions: 20
 - Status: Completed
 - Completion Date: ${new Date().toLocaleDateString()}
+
+Questions and Answers:
+${questionsAndAnswers}
 
 This questionnaire has been completed and digitally signed.
     `);

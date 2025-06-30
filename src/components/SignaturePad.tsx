@@ -239,7 +239,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
                 className="bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400"
               >
                 <Check className="h-4 w-4 mr-2" />
-                Complete Questionnaire
+                Complete
               </Button>
             </div>
           </CardContent>
