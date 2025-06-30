@@ -1,28 +1,25 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, PenTool, RotateCcw, Check } from "lucide-react";
+import { PenTool, RotateCcw, Check, ArrowLeft } from "lucide-react";
 
 interface SignaturePadProps {
   patientName: string;
   questionCount: number;
   answeredCount: number;
-  onSignatureComplete: (signature: string) => void;
+  onSignatureComplete: (signatureData: string) => void;
   onBack: () => void;
 }
 
 const SignaturePad: React.FC<SignaturePadProps> = ({
   patientName,
-  questionCount,
-  answeredCount,
   onSignatureComplete,
   onBack
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [isEmpty, setIsEmpty] = useState(true);
-  const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 });
+  const [hasSignature, setHasSignature] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,55 +30,25 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
 
     // Set canvas size
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * 2;
-    canvas.height = rect.height * 2;
-    ctx.scale(2, 2);
-
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    
     // Set drawing styles
-    ctx.strokeStyle = '#2563eb';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-
-    // Fill with white background
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Prevent scrolling when touching the canvas
-    const preventTouch = (e: TouchEvent) => {
-      e.preventDefault();
-    };
-
-    canvas.addEventListener('touchstart', preventTouch, { passive: false });
-    canvas.addEventListener('touchend', preventTouch, { passive: false });
-    canvas.addEventListener('touchmove', preventTouch, { passive: false });
-
-    return () => {
-      canvas.removeEventListener('touchstart', preventTouch);
-      canvas.removeEventListener('touchend', preventTouch);
-      canvas.removeEventListener('touchmove', preventTouch);
-    };
   }, []);
 
-  const getPointerPosition = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const getEventPos = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
-    let clientX, clientY;
-
-    if ('touches' in e) {
-      if (e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      } else {
-        clientX = e.changedTouches[0].clientX;
-        clientY = e.changedTouches[0].clientY;
-      }
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
     return {
       x: clientX - rect.left,
@@ -89,158 +56,117 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
     };
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const pos = getPointerPosition(e);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    setLastPoint(pos);
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     setIsDrawing(true);
-    setIsEmpty(false);
+    const pos = getEventPos(e);
+    const ctx = canvasRef.current?.getContext('2d');
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     if (!isDrawing) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const pos = getPointerPosition(e);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    setLastPoint(pos);
+    const pos = getEventPos(e);
+    const ctx = canvasRef.current?.getContext('2d');
+    if (ctx) {
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      setHasSignature(true);
+    }
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     setIsDrawing(false);
   };
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    setIsEmpty(true);
+    const ctx = canvas?.getContext('2d');
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      setHasSignature(false);
+    }
   };
 
-  const handleSubmit = () => {
+  const completeSignature = () => {
     const canvas = canvasRef.current;
-    if (!canvas || isEmpty) return;
-
-    const signatureData = canvas.toDataURL();
-    onSignatureComplete(signatureData);
+    if (canvas && hasSignature) {
+      const signatureData = canvas.toDataURL();
+      onSignatureComplete(signatureData);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <Card className="mb-6 shadow-lg border-blue-200">
-          <CardHeader className="bg-blue-600 text-white rounded-t-lg">
-            <div className="flex items-center">
+        <Card className="shadow-lg border-green-200">
+          <CardHeader className="bg-green-600 text-white">
+            <CardTitle className="text-xl flex items-center">
               <PenTool className="h-6 w-6 mr-2" />
-              <div>
-                <CardTitle className="text-xl">Digital Signature</CardTitle>
-                <p className="text-blue-100 text-sm">Patient: {patientName}</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800 mb-2">Questionnaire Summary</h3>
-              <p className="text-green-700">
-                ✓ Completed {answeredCount} of {questionCount} questions
-              </p>
-              <p className="text-sm text-green-600 mt-1">
-                Please provide your digital signature to complete the process
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Signature Pad */}
-        <Card className="shadow-lg border-blue-200 mb-6">
-          <CardHeader className="bg-gray-50 border-b">
-            <CardTitle className="text-lg text-gray-800 flex items-center">
-              <PenTool className="h-5 w-5 mr-2" />
-              Please sign below
+              Digital Signature
             </CardTitle>
+            <p className="text-green-100">
+              Hello {patientName}, please sign below to complete your questionnaire
+            </p>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-              <canvas
-                ref={canvasRef}
-                className="w-full h-48 cursor-crosshair border border-gray-200 rounded touch-none"
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
-                style={{ touchAction: 'none' }}
-              />
-              <p className="text-center text-sm text-gray-500 mt-2">
-                {isEmpty ? 'Click/tap and drag to create your signature' : 'Signature captured'}
+            <div className="mb-6">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-48 bg-white border rounded cursor-crosshair touch-none"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                />
+              </div>
+              <p className="text-sm text-gray-600 mt-2 text-center">
+                Sign using your mouse or finger
               </p>
             </div>
-            
-            <div className="flex justify-center mt-4">
-              <Button
-                onClick={clearSignature}
-                variant="outline"
-                className="border-gray-300 hover:bg-gray-50"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Clear Signature
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Action Buttons */}
-        <Card className="shadow-lg border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-between">
               <Button
                 onClick={onBack}
                 variant="outline"
                 size="lg"
-                className="border-blue-200 hover:bg-blue-50"
+                className="border-gray-300"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Questions
+                Back
               </Button>
-              
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  {isEmpty ? 'Signature required to complete' : 'Ready to submit'}
-                </p>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={clearSignature}
+                  variant="outline"
+                  size="lg"
+                  className="border-gray-300"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+
+                <Button
+                  onClick={completeSignature}
+                  disabled={!hasSignature}
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Complete
+                </Button>
               </div>
-              
-              <Button
-                onClick={handleSubmit}
-                disabled={isEmpty}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400"
-              >
-                <Check className="h-4 w-4 mr-2" />
-                Complete
-              </Button>
             </div>
           </CardContent>
         </Card>

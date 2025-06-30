@@ -36,23 +36,49 @@ const containsHebrew = (text: string): boolean => {
   return /[\u0590-\u05FF]/.test(text);
 };
 
+// Function to reverse Hebrew text for proper display
+const reverseHebrewText = (text: string): string => {
+  if (!containsHebrew(text)) return text;
+  
+  // Split by spaces and reverse the order of Hebrew words
+  const words = text.split(' ');
+  const reversedWords = words.reverse();
+  return reversedWords.join(' ');
+};
+
 // Function to handle text direction for Hebrew
 const processText = (pdf: jsPDF, text: string, x: number, y: number, maxWidth?: number) => {
+  // For Hebrew text, we need special handling
   if (containsHebrew(text)) {
-    // For Hebrew text, we need to handle RTL direction
+    const processedText = reverseHebrewText(text);
+    
     if (maxWidth) {
-      const splitText = pdf.splitTextToSize(text, maxWidth);
-      if (Array.isArray(splitText)) {
-        splitText.forEach((line, index) => {
-          pdf.text(line, x, y + (index * 5), { align: 'right' });
-        });
-        return splitText.length * 5;
-      } else {
-        pdf.text(splitText, x, y, { align: 'right' });
-        return 5;
+      // For Hebrew, we need to handle line breaks differently
+      const words = processedText.split(' ');
+      let currentLine = '';
+      let lineCount = 0;
+      
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const lineWidth = pdf.getTextWidth(testLine);
+        
+        if (lineWidth > maxWidth && currentLine) {
+          pdf.text(currentLine, x, y + (lineCount * 5), { align: 'right' });
+          currentLine = word;
+          lineCount++;
+        } else {
+          currentLine = testLine;
+        }
       }
+      
+      if (currentLine) {
+        pdf.text(currentLine, x, y + (lineCount * 5), { align: 'right' });
+        lineCount++;
+      }
+      
+      return lineCount * 5;
     } else {
-      pdf.text(text, x, y, { align: 'right' });
+      pdf.text(processedText, x, y, { align: 'right' });
       return 5;
     }
   } else {
@@ -71,7 +97,7 @@ const processText = (pdf: jsPDF, text: string, x: number, y: number, maxWidth?: 
 export const generateQuestionnairePDF = (data: QuestionnaireData) => {
   const pdf = new jsPDF();
   
-  // Set font
+  // Set font to support Hebrew characters better
   pdf.setFont('helvetica');
   
   // Title
