@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import MedicalQuestionnaire from "../components/MedicalQuestionnaire";
 import { toast } from "@/hooks/use-toast";
 import { generateQuestionnairePDF } from "../utils/pdfGenerator";
+import { getQuestions, initializeQuestions } from "../utils/questionManager";
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState('personal'); // 'personal', 'questionnaire', 'completed'
@@ -21,30 +22,12 @@ const Index = () => {
   const [questionnaireData, setQuestionnaireData] = useState({});
   const [signature, setSignature] = useState('');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [medicalQuestions, setMedicalQuestions] = useState<string[]>([]);
 
-  const medicalQuestions = [
-    "Do you have any allergies to medications?",
-    "Are you currently taking any prescription medications?",
-    "Do you have a history of heart disease?",
-    "Have you ever had high blood pressure?",
-    "Do you have diabetes or a family history of diabetes?",
-    "Do you have diabetes or a family history of diabetes?",
-    "Have you ever been diagnosed with cancer?",
-    "Do you smoke or have you smoked in the past?",
-    "Do you consume alcohol regularly?",
-    "Have you had any surgeries in the past 5 years?",
-    "Do you have any chronic pain conditions?",
-    "Are you currently experiencing any symptoms?",
-    "Do you have a history of mental health conditions?",
-    "Have you ever had kidney or liver problems?",
-    "Do you have any breathing difficulties or asthma?",
-    "Are you pregnant or planning to become pregnant?",
-    "Do you have any vision or hearing problems?",
-    "Have you ever had blood clots or circulation issues?",
-    "Do you have any skin conditions or rashes?",
-    "Are you up to date with your vaccinations?",
-    "Do you exercise regularly or maintain an active lifestyle?"
-  ];
+  useEffect(() => {
+    initializeQuestions();
+    setMedicalQuestions(getQuestions());
+  }, []);
 
   const handlePersonalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +105,7 @@ Patient Information:
 - Date: ${personalData.date ? format(personalData.date, "PPP") : ""}
 
 Questionnaire Summary:
-- Total Questions: 20
+- Total Questions: ${medicalQuestions.length}
 - Status: Completed
 - Completion Date: ${new Date().toLocaleDateString()}
 
@@ -233,7 +216,7 @@ This questionnaire has been completed and digitally signed.
             
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold text-gray-800 mb-2">Questionnaire Summary</h3>
-              <p>All 20 questions completed and signature captured</p>
+              <p>All {medicalQuestions.length} questions completed and signature captured</p>
               <p className="text-sm text-gray-600 mt-2">
                 Your responses have been recorded for medical review
               </p>

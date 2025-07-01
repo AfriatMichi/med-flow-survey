@@ -1,38 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, FileText } from "lucide-react";
 import SignaturePad from "./SignaturePad";
+import { getQuestions } from "../utils/questionManager";
 
 interface MedicalQuestionnaireProps {
   patientName: string;
   onComplete: (answers: Record<number, boolean>, signature: string) => void;
 }
 
-const medicalQuestions = [
-  "Do you have any allergies to medications?",
-  "Are you currently taking any prescription medications?",
-  "Do you have a history of heart disease?",
-  "Have you ever had high blood pressure?",
-  "Do you have diabetes or a family history of diabetes?",
-  "Have you ever been diagnosed with cancer?",
-  "Do you smoke or have you smoked in the past?",
-  "Do you consume alcohol regularly?",
-  "Have you had any surgeries in the past 5 years?",
-  "Do you have any chronic pain conditions?",
-  "Are you currently experiencing any symptoms?",
-  "Do you have a history of mental health conditions?",
-  "Have you ever had kidney or liver problems?",
-  "Do you have any breathing difficulties or asthma?",
-  "Are you pregnant or planning to become pregnant?",
-  "Do you have any vision or hearing problems?",
-  "Have you ever had blood clots or circulation issues?",
-  "Do you have any skin conditions or rashes?",
-  "Are you up to date with your vaccinations?",
-  "Do you exercise regularly or maintain an active lifestyle?"
-];
 
 const MedicalQuestionnaire: React.FC<MedicalQuestionnaireProps> = ({ 
   patientName, 
@@ -41,6 +20,11 @@ const MedicalQuestionnaire: React.FC<MedicalQuestionnaireProps> = ({
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, boolean>>({});
   const [showSignature, setShowSignature] = useState(false);
+  const [medicalQuestions, setMedicalQuestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setMedicalQuestions(getQuestions());
+  }, []);
 
   const handleAnswer = (answer: boolean) => {
     const newAnswers = { ...answers, [currentQuestion]: answer };
