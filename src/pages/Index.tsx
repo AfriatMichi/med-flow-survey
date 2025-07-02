@@ -3,7 +3,7 @@ import MedicalQuestionnaire from "../components/MedicalQuestionnaire";
 import PersonalForm from "../components/PersonalForm";
 import CompletedScreen from "../components/CompletedScreen";
 import { toast } from "@/hooks/use-toast";
-import { generateQuestionnairePDF } from "../utils/pdfGenerator";
+import { generateQuestionnairePDF } from "../utils/reactPdfGenerator";
 import { getQuestions, initializeQuestions } from "../utils/questionManager";
 import { sendQuestionnaireEmail } from "../utils/emailUtils";
 
@@ -57,16 +57,24 @@ const Index = () => {
     });
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     try {
-      const pdf = generateQuestionnairePDF({
+      const pdfBlob = await generateQuestionnairePDF({
         fullName: personalData.fullName,
         date: personalData.date,
         signature: signature,
         answers: questionnaireData as Record<number, boolean>
       });
       
-      pdf.save(`medical-questionnaire-${personalData.fullName.replace(/\s+/g, '-')}.pdf`);
+      // Create download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `medical-questionnaire-${personalData.fullName.replace(/\s+/g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
       toast({
         title: "PDF Downloaded",
