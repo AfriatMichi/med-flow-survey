@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>צנתרים מרכזיים - דגשים חשובים</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+
+        .main-content {
+            display: grid;
+            gap: 25px;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: #2980b9;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .section-number {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .content-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .important-note {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-right: 4px solid #d35400;
+            font-weight: 500;
+        }
+
+        .tips-section {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .tips-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tip-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .procedure-note {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .section-card {
+                padding: 20px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1>🏥 צנתרים מרכזיים</h1>
+            <p>דגשים חשובים להחלפה ותחזוקה</p>
+        </div>
+
+        <div class="main-content">
+            <div class="section-card fade-in">
+                <div class="section-title">
+                    <div class="section-number">1</div>
+                    <span class="icon">🩹</span>
+                    החלפת חבישה
+                </div>
+                <div class="content-text">
+                    להשתמש בערכה להחלפת חבישה. <span class="highlight">אסור</span> להשתמש בעטיפה של הכפפות הסטריליות.
+                </div>
+                <div class="important-note">
+                    💡 כדאי ורצוי להשתמש באחות אילמת (יש לחטא לפני ואחרי את המשטח)
+                </div>
+                <div class="content-text">
+                    <strong>בפיקליין:</strong> חבישה רק עם אלכוהול (ג'ל)<br>
+                    <strong>בכל החלפת חבישה יש להחליף פרפרית!</strong><br>
+                    אם המטופל סיעודי או קשה עדיף ללכת שתי אחיות להחלפת פרפרית.<br>
+                    <strong>בפורט:</strong> חבישת טגדרם גדול.<br>
+                    <span class="highlight">תמיד יש להמתין לייבוש החיטוי</span>
+                </div>
+            </div>
+
+            <div class="section-card fade-in">
+                <div class="section-title">
+                    <div class="section-number">2</div>
+                    <span class="icon">🔄</span>
+                    החלפת וונטילים
+                </div>
+                <div class="content-text">
+                    <strong>כל 4 ימים</strong> בטיפול שוטף<br>
+                    אם יש לכלכוך או שאריות דם - יש להחליף בלי קשר<br>
+                    <strong>במתן TPN</strong> - מחליפים כל יום לפני החיבור ל-TPN<br>
+                    <strong>לפני לקיחת תרביות דם</strong> - יש להחליף את הוונטיל
+                </div>
+            </div>
+
+            <div class="section-card fade-in">
+                <div class="section-title">
+                    <div class="section-number">3</div>
+                    <span class="icon">🔧</span>
+                    החלפת צנרת
+                </div>
+                <div class="content-text">
+                    <strong>כל 96 שעות</strong> בשימוש רציף<br>
+                    <strong>כל 24 שעות</strong> בשימוש לא רציף
+                </div>
+            </div>
+
+            <div class="section-card fade-in">
+                <div class="section-title">
+                    <div class="section-number">4</div>
+                    <span class="icon">💉</span>
+                    הכנסת מחט לפורט
+                </div>
+                <div class="content-text">
+                    להשתמש בערכת החלפת תחבושת - <span class="highlight">פעולה סטרילית</span><br>
+                    לקחת אחות אילמת<br>
+                    <strong>יש לחכות 30 שניות לייבוש העור לאחר החיטוי</strong><br>
+                    לשים 2 וונטילים תמיד<br>
+                    אפשר לקחת מהקצה השני בדיקות דם לפי הצורך ולא לנתק את החולה
+                </div>
+            </div>
+
+            <div class="section-card fade-in">
+                <div class="section-title">
+                    <div class="section-number">5</div>
+                    <span class="icon">🩸</span>
+                    בדיקות דם
+                </div>
+                <div class="content-text">
+                    אחרי כל בדיקת דם <span class="highlight">יש לבצע שטיפה</span><br>
+                    עדיפות לא לנתק כדי לקחת בדיקות דם<br>
+                    עדיף תמיד לקחת מלומן שני<br>
+                    יש לקחת עם ווקונטיינר סטרילי<br>
+                    <strong>לקחת "שטח מת" תמיד</strong>
+                </div>
+            </div>
+
+            <div class="section-card fade-in">
+                <div class="section-title">
+                    <div class="section-number">6</div>
+                    <span class="icon">🚿</span>
+                    שטיפה לווריד מרכזי
+                </div>
+                <div class="content-text">
+                    <span class="highlight">אחרי כל שימוש לא רציף!</span><br>
+                    עדיף במטופל עם הרבה טיפולים לווריד או תרופה מספר פעמים ביום,
+                    להשאיר נוזלים רצופים ולא לנתק ולחבר כל הזמן!
+                </div>
+            </div>
+
+            <div class="tips-section fade-in">
+                <div class="tips-title">
+                    <span class="icon">💡</span>
+                    עצות חשובות
+                </div>
+                <div class="tip-item">
+                    יש להעדיף טיפול פומי למי שאפשר
+                </div>
+                <div class="tip-item">
+                    אלקטרוליטים ודם לתת אך ורק דרך מכשיר ולא בטפטוף איטי
+                </div>
+            </div>
+
+            <div class="procedure-note fade-in">
+                <h3>📋 חשוב לזכור</h3>
+                <p><strong>חייב לקרוא את הנוהל</strong><br>
+                יש רשימת ציוד והכנה וסדר פעולות</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add smooth scroll animation to cards
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0.1s';
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        });
+
+        document.querySelectorAll('.section-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Add click animation to cards
+        document.querySelectorAll('.section-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    card.style.transform = 'translateY(-5px)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
